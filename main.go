@@ -1,8 +1,8 @@
 package main
 
 import (
-	"io/ioutil"
-	"path/filepath"
+	"log"
+	"os"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -10,16 +10,55 @@ import (
 	"riakg/riakapi"
 )
 
+func empty() {}
+
+func setSelectedFunct(app *tview.Application, tree *tview.TreeView, keyList *tview.List) {
+
+	// If a directory was selected, open it.
+	tree.SetSelectedFunc(func(node *tview.TreeNode) {
+		keyList.Clear()
+		keys := riakapi.GetBucketKeys(node.GetText())
+
+		for i := range keys {
+			keyList.AddItem(keys[i], "", 0, empty)
+		}
+
+		app.SetFocus(keyList)
+		//children := node.GetChildren()
+		//if len(children) == 0 {
+		//// Load and show files in this directory.
+		//path := reference.(string)
+		//add(node, path)
+		//} else {
+		//// Collapse if visible, expand if collapsed.
+		//node.SetExpanded(!node.IsExpanded())
+		//}
+	})
+}
+
+func init() {
+	file, err := os.OpenFile("logs.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.SetOutput(file)
+}
+
 func main() {
 	app := tview.NewApplication()
 	flex := tview.NewFlex()
 
+	// Tree declaracion
+	tree := tview.NewTreeView()
+	tree.SetBorder(true)
+	tree.SetBackgroundColor(tcell.NewRGBColor(20, 20, 20))
+	tree.SetBorderColor(tcell.NewRGBColor(40, 40, 40))
+
+	// Root element
 	rootDir := "Buckets"
 	root := tview.NewTreeNode(rootDir).SetColor(tcell.ColorRed)
-	tree := tview.NewTreeView().SetRoot(root).SetCurrentNode(root)
-
-	tree.SetBorder(true)
-	tree.SetBackgroundColor(tcell.NewRGBColor(10, 10, 10))
+	tree.SetRoot(root).SetCurrentNode(root)
 
 	buckets := riakapi.GetBuckets()
 
@@ -27,64 +66,22 @@ func main() {
 		root.AddChild(tview.NewTreeNode(buckets.Bukckets[v]))
 	}
 
-	keysBox := tview.NewBox().SetBorder(true).SetTitle("Riak Keys")
-
-	flex.AddItem(tree, 0, 1, true)
-	flex.AddItem(keysBox, 0, 2, false)
-
-	if err := app.SetRoot(flex, true).SetFocus(flex).Run(); err != nil {
-		panic(err)
-	}
-}
-
-// Show a navigable tree view of the current directory.
-func main2() {
-	rootDir := "."
-	root := tview.NewTreeNode(rootDir).
-		SetColor(tcell.ColorRed)
-	tree := tview.NewTreeView().
-		SetRoot(root).
-		SetCurrentNode(root)
-
-	// A helper function which adds the files and directories of the given path
-	// to the given target node.
-	add := func(target *tview.TreeNode, path string) {
-		files, err := ioutil.ReadDir(path)
-		if err != nil {
-			panic(err)
-		}
-		for _, file := range files {
-			node := tview.NewTreeNode(file.Name()).
-				SetReference(filepath.Join(path, file.Name())).
-				SetSelectable(file.IsDir())
-			if file.IsDir() {
-				node.SetColor(tcell.ColorGreen)
-			}
-			target.AddChild(node)
-		}
-	}
-
-	// Add the current directory to the root node.
-	add(root, rootDir)
-
-	// If a directory was selected, open it.
-	tree.SetSelectedFunc(func(node *tview.TreeNode) {
-		reference := node.GetReference()
-		if reference == nil {
-			return // Selecting the root node does nothing.
-		}
-		children := node.GetChildren()
-		if len(children) == 0 {
-			// Load and show files in this directory.
-			path := reference.(string)
-			add(node, path)
-		} else {
-			// Collapse if visible, expand if collapsed.
-			node.SetExpanded(!node.IsExpanded())
-		}
+	// Key list
+	keyList := tview.NewList()
+	keyList.ShowSecondaryText(false)
+	keyList.SetBorder(true).SetTitle("Keys")
+	keyList.SetDoneFunc(func() {
+		app.SetFocus(tree)
+		//keyList.Clear()
+		//app.SetFocus(databases)
 	})
 
-	if err := tview.NewApplication().SetRoot(tree, true).Run(); err != nil {
+	setSelectedFunct(app, tree, keyList)
+
+	flex.AddItem(tree, 0, 1, true)
+	flex.AddItem(keyList, 0, 2, false)
+
+	if err := app.SetRoot(flex, true).SetFocus(flex).Run(); err != nil {
 		panic(err)
 	}
 }
