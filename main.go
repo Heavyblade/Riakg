@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -70,9 +71,9 @@ func main() {
 	keyView.SetBorder(true).SetTitle("Value")
 	keyView.SetBackgroundColor(backgroundColor)
 	keyView.SetBorderColor(borderColor)
-	keyView.SetDynamicColors(true).SetRegions(true)
+	keyView.SetDynamicColors(true)
 	keyView.SetScrollable(true)
-	keyView.SetWrap(true)
+	keyView.SetWrap(false)
 
 	flex.AddItem(bucketTree, 0, 1, true)
 	flex.AddItem(keyList, 0, 1, false)
@@ -84,7 +85,9 @@ func main() {
 	keyList.SetSelectedFunc(func(idx int, key, secondary string, shortcut rune) {
 		currentBucket := bucketTree.GetCurrentNode().GetText()
 		value := riakapi.GetKeyValue(currentBucket, key)
-		keyView.SetText(value)
+		w := tview.ANSIWriter(keyView)
+		fmt.Fprint(w, value)
+		//keyView.SetText(value)
 		app.SetFocus(keyView)
 	})
 	keyView.SetDoneFunc(func(key tcell.Key) {
