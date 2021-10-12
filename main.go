@@ -12,6 +12,7 @@ import (
 
 var backgroundColor = tcell.NewRGBColor(26, 27, 38)
 var bucketsFontColor = tcell.NewRGBColor(47, 196, 222)
+var borderColor = tcell.NewRGBColor(59, 66, 97)
 
 //var keysFontColor = tcell.NewRGBColor(187, 154, 247)
 var keysFontColor = tcell.NewRGBColor(200, 200, 200)
@@ -50,7 +51,7 @@ func main() {
 	bucketTree := tview.NewTreeView()
 	bucketTree.SetBorder(true)
 	bucketTree.SetBackgroundColor(backgroundColor)
-	bucketTree.SetBorderColor(tcell.NewRGBColor(40, 40, 40))
+	bucketTree.SetBorderColor(borderColor)
 	bucketTree.SetTitle(riakapi.Host + ":" + riakapi.Port)
 
 	// Key list declaration
@@ -58,19 +59,18 @@ func main() {
 	keyList.ShowSecondaryText(false)
 	keyList.SetBackgroundColor(backgroundColor)
 	keyList.SetBorder(true).SetTitle("Keys")
-	keyList.SetBorderColor(tcell.NewRGBColor(40, 40, 40))
+	keyList.SetBorderColor(borderColor)
 	keyList.SetMainTextColor(keysFontColor)
 	keyList.SetDoneFunc(func() {
 		app.SetFocus(bucketTree)
-		//keyList.Clear()
-		//app.SetFocus(databases)
 	})
 
 	// Key Value declaration
 	keyView := tview.NewTextView().SetWrap(false)
 	keyView.SetBorder(true).SetTitle("Value")
 	keyView.SetBackgroundColor(backgroundColor)
-	keyView.SetDynamicColors(true)
+	keyView.SetBorderColor(borderColor)
+	keyView.SetDynamicColors(true).SetRegions(true)
 	keyView.SetScrollable(true)
 	keyView.SetWrap(true)
 
@@ -85,6 +85,10 @@ func main() {
 		currentBucket := bucketTree.GetCurrentNode().GetText()
 		value := riakapi.GetKeyValue(currentBucket, key)
 		keyView.SetText(value)
+		app.SetFocus(keyView)
+	})
+	keyView.SetDoneFunc(func(key tcell.Key) {
+		app.SetFocus(keyList)
 	})
 
 	fillBuckets(bucketTree)

@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+
+	"github.com/tidwall/pretty"
 )
 
 var Host string = "localhost"
@@ -107,6 +109,6 @@ func GetKeyValue(bucket, key string) string {
 	if err != nil {
 		panic(err)
 	}
-
-	return string(respByte)
+	prettified := pretty.Pretty(respByte)
+	return string(prettified)
 }
