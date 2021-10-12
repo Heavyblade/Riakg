@@ -10,11 +10,15 @@ import (
 	"riakg/riakapi"
 )
 
+var backgroundColor = tcell.NewRGBColor(26, 27, 38)
+var bucketsFontColor = tcell.NewRGBColor(47, 196, 222)
+
+//var keysFontColor = tcell.NewRGBColor(187, 154, 247)
+var keysFontColor = tcell.NewRGBColor(200, 200, 200)
+
 func empty() {}
 
 func setSelectedFunct(app *tview.Application, tree *tview.TreeView, keyList *tview.List) {
-
-	// If a directory was selected, open it.
 	tree.SetSelectedFunc(func(node *tview.TreeNode) {
 		keyList.Clear()
 		keys := riakapi.GetBucketKeys(node.GetText())
@@ -22,18 +26,11 @@ func setSelectedFunct(app *tview.Application, tree *tview.TreeView, keyList *tvi
 		for i := range keys {
 			keyList.AddItem(keys[i], "", 0, empty)
 		}
-
 		app.SetFocus(keyList)
-		//children := node.GetChildren()
-		//if len(children) == 0 {
-		//// Load and show files in this directory.
-		//path := reference.(string)
-		//add(node, path)
-		//} else {
-		//// Collapse if visible, expand if collapsed.
-		//node.SetExpanded(!node.IsExpanded())
-		//}
 	})
+}
+
+func setSelectedKeyHandler(app *tview.Application, keyList *tview.List, keyValue *tview.TextView) {
 }
 
 func init() {
@@ -50,38 +47,61 @@ func main() {
 	flex := tview.NewFlex()
 
 	// Tree declaracion
-	tree := tview.NewTreeView()
-	tree.SetBorder(true)
-	tree.SetBackgroundColor(tcell.NewRGBColor(20, 20, 20))
-	tree.SetBorderColor(tcell.NewRGBColor(40, 40, 40))
+	bucketTree := tview.NewTreeView()
+	bucketTree.SetBorder(true)
+	bucketTree.SetBackgroundColor(backgroundColor)
+	bucketTree.SetBorderColor(tcell.NewRGBColor(40, 40, 40))
+	bucketTree.SetTitle(riakapi.Host + ":" + riakapi.Port)
 
-	// Root element
-	rootDir := "Buckets"
-	root := tview.NewTreeNode(rootDir).SetColor(tcell.ColorRed)
-	tree.SetRoot(root).SetCurrentNode(root)
-
-	buckets := riakapi.GetBuckets()
-
-	for v := range buckets.Bukckets {
-		root.AddChild(tview.NewTreeNode(buckets.Bukckets[v]))
-	}
-
-	// Key list
+	// Key list declaration
 	keyList := tview.NewList()
 	keyList.ShowSecondaryText(false)
+	keyList.SetBackgroundColor(backgroundColor)
 	keyList.SetBorder(true).SetTitle("Keys")
+	keyList.SetBorderColor(tcell.NewRGBColor(40, 40, 40))
+	keyList.SetMainTextColor(keysFontColor)
 	keyList.SetDoneFunc(func() {
-		app.SetFocus(tree)
+		app.SetFocus(bucketTree)
 		//keyList.Clear()
 		//app.SetFocus(databases)
 	})
 
-	setSelectedFunct(app, tree, keyList)
+	// Key Value declaration
+	keyView := tview.NewTextView().SetWrap(false)
+	keyView.SetBorder(true).SetTitle("Value")
+	keyView.SetBackgroundColor(backgroundColor)
+	keyView.SetDynamicColors(true)
+	keyView.SetScrollable(true)
+	keyView.SetWrap(true)
 
-	flex.AddItem(tree, 0, 1, true)
-	flex.AddItem(keyList, 0, 2, false)
+	flex.AddItem(bucketTree, 0, 1, true)
+	flex.AddItem(keyList, 0, 1, false)
+	flex.AddItem(keyView, 0, 2, false)
+
+	// Set bindings
+	setSelectedFunct(app, bucketTree, keyList)
+
+	keyList.SetSelectedFunc(func(idx int, key, secondary string, shortcut rune) {
+		currentBucket := bucketTree.GetCurrentNode().GetText()
+		value := riakapi.GetKeyValue(currentBucket, key)
+		keyView.SetText(value)
+	})
+
+	fillBuckets(bucketTree)
 
 	if err := app.SetRoot(flex, true).SetFocus(flex).Run(); err != nil {
 		panic(err)
+	}
+}
+
+func fillBuckets(bucketTree *tview.TreeView) {
+	buckets := riakapi.GetBuckets()
+
+	rootDir := "Buckets"
+	root := tview.NewTreeNode(rootDir).SetColor(bucketsFontColor)
+	bucketTree.SetRoot(root).SetCurrentNode(root)
+
+	for v := range buckets.Bukckets {
+		root.AddChild(tview.NewTreeNode(buckets.Bukckets[v]).SetColor(bucketsFontColor))
 	}
 }
