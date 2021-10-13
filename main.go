@@ -20,7 +20,7 @@ var keysFontColor = tcell.NewRGBColor(200, 200, 200)
 
 func empty() {}
 
-func setSelectedFunct(app *tview.Application, tree *tview.TreeView, keyList *tview.List) {
+func setSelectedBucketHandler(app *tview.Application, tree *tview.TreeView, keyList *tview.List) {
 	tree.SetSelectedFunc(func(node *tview.TreeNode) {
 		keyList.Clear()
 		keys := riakapi.GetBucketKeys(node.GetText())
@@ -32,7 +32,29 @@ func setSelectedFunct(app *tview.Application, tree *tview.TreeView, keyList *tvi
 	})
 }
 
-func setSelectedKeyHandler(app *tview.Application, keyList *tview.List, keyValue *tview.TextView) {
+func setSelectedKeyHandler(app *tview.Application, bucketTree *tview.TreeView, keyList *tview.List, valueView *tview.TextView) {
+	keyList.SetSelectedFunc(func(idx int, key, secondary string, shortcut rune) {
+		currentBucket := bucketTree.GetCurrentNode().GetText()
+		value := riakapi.GetKeyValue(currentBucket, key)
+		valueView.Clear()
+		w := tview.ANSIWriter(valueView)
+		fmt.Fprint(w, value)
+		app.SetFocus(valueView)
+	})
+}
+
+type BaseSettabler interface {
+	SetBorder(bool) *tview.Box
+	SetBackgroundColor(tcell.Color) *tview.Box
+	SetBorderColor(tcell.Color) *tview.Box
+	SetTitle(string) *tview.Box
+}
+
+func setBaseStyle(component BaseSettabler, title string) {
+	component.SetBorder(true)
+	component.SetBackgroundColor(backgroundColor)
+	component.SetBorderColor(borderColor)
+	component.SetTitle(title)
 }
 
 func init() {
@@ -50,47 +72,33 @@ func main() {
 
 	// Tree declaracion
 	bucketTree := tview.NewTreeView()
-	bucketTree.SetBorder(true)
-	bucketTree.SetBackgroundColor(backgroundColor)
-	bucketTree.SetBorderColor(borderColor)
-	bucketTree.SetTitle(riakapi.Host + ":" + riakapi.Port)
+	setBaseStyle(bucketTree, riakapi.Host+":"+riakapi.Port)
 
 	// Key list declaration
 	keyList := tview.NewList()
+	setBaseStyle(keyList, "Keys")
 	keyList.ShowSecondaryText(false)
-	keyList.SetBackgroundColor(backgroundColor)
-	keyList.SetBorder(true).SetTitle("Keys")
-	keyList.SetBorderColor(borderColor)
 	keyList.SetMainTextColor(keysFontColor)
 	keyList.SetDoneFunc(func() {
 		app.SetFocus(bucketTree)
 	})
 
 	// Key Value declaration
-	keyView := tview.NewTextView().SetWrap(false)
-	keyView.SetBorder(true).SetTitle("Value")
-	keyView.SetBackgroundColor(backgroundColor)
-	keyView.SetBorderColor(borderColor)
-	keyView.SetDynamicColors(true)
-	keyView.SetScrollable(true)
-	keyView.SetWrap(false)
+	valueView := tview.NewTextView().SetWrap(false)
+	setBaseStyle(valueView, "Keys")
+	valueView.SetDynamicColors(true)
+	valueView.SetScrollable(true)
+	valueView.SetWrap(false)
 
 	flex.AddItem(bucketTree, 0, 1, true)
 	flex.AddItem(keyList, 0, 1, false)
-	flex.AddItem(keyView, 0, 2, false)
+	flex.AddItem(valueView, 0, 2, false)
 
 	// Set bindings
-	setSelectedFunct(app, bucketTree, keyList)
+	setSelectedBucketHandler(app, bucketTree, keyList)
+	setSelectedKeyHandler(app, bucketTree, keyList, valueView)
 
-	keyList.SetSelectedFunc(func(idx int, key, secondary string, shortcut rune) {
-		currentBucket := bucketTree.GetCurrentNode().GetText()
-		value := riakapi.GetKeyValue(currentBucket, key)
-		keyView.Clear()
-		w := tview.ANSIWriter(keyView)
-		fmt.Fprint(w, value)
-		app.SetFocus(keyView)
-	})
-	keyView.SetDoneFunc(func(key tcell.Key) {
+	valueView.SetDoneFunc(func(key tcell.Key) {
 		app.SetFocus(keyList)
 	})
 
