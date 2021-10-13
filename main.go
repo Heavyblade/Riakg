@@ -85,9 +85,9 @@ func main() {
 	keyList.SetSelectedFunc(func(idx int, key, secondary string, shortcut rune) {
 		currentBucket := bucketTree.GetCurrentNode().GetText()
 		value := riakapi.GetKeyValue(currentBucket, key)
+		keyView.Clear()
 		w := tview.ANSIWriter(keyView)
 		fmt.Fprint(w, value)
-		//keyView.SetText(value)
 		app.SetFocus(keyView)
 	})
 	keyView.SetDoneFunc(func(key tcell.Key) {

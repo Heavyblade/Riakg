@@ -1,14 +1,12 @@
 package riakapi
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 
-	"github.com/alecthomas/chroma/quick"
 	"github.com/tidwall/pretty"
 )
 
@@ -112,8 +110,6 @@ func GetKeyValue(bucket, key string) string {
 		panic(err)
 	}
 	prettified := pretty.Pretty(respByte)
-	highlighted := bytes.NewBufferString("")
-	quick.Highlight(highlighted, string(prettified), "json", "terminal", "monokai")
-
-	return highlighted.String()
+	highlighted := pretty.Color([]byte(prettified), nil)
+	return string(highlighted)
 }
