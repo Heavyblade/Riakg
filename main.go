@@ -18,6 +18,17 @@ var borderColor = tcell.NewRGBColor(59, 66, 97)
 //var keysFontColor = tcell.NewRGBColor(187, 154, 247)
 var keysFontColor = tcell.NewRGBColor(200, 200, 200)
 
+type BaseSettabler interface {
+	SetBorder(bool) *tview.Box
+	SetBackgroundColor(tcell.Color) *tview.Box
+	SetBorderColor(tcell.Color) *tview.Box
+	SetTitle(string) *tview.Box
+}
+
+type InputCapturabler interface {
+	SetInputCapture(capture func(event *tcell.EventKey) *tcell.EventKey) *tview.Box
+}
+
 func empty() {}
 
 func setSelectedBucketHandler(app *tview.Application, tree *tview.TreeView, keyList *tview.List) {
@@ -41,13 +52,6 @@ func setSelectedKeyHandler(app *tview.Application, bucketTree *tview.TreeView, k
 		fmt.Fprint(w, value)
 		app.SetFocus(valueView)
 	})
-}
-
-type BaseSettabler interface {
-	SetBorder(bool) *tview.Box
-	SetBackgroundColor(tcell.Color) *tview.Box
-	SetBorderColor(tcell.Color) *tview.Box
-	SetTitle(string) *tview.Box
 }
 
 func setBaseStyle(component BaseSettabler, title string) {
@@ -79,16 +83,14 @@ func main() {
 	setBaseStyle(keyList, "Keys")
 	keyList.ShowSecondaryText(false)
 	keyList.SetMainTextColor(keysFontColor)
-	keyList.SetDoneFunc(func() {
-		app.SetFocus(bucketTree)
-	})
 
-	// Key Value declaration
+	// Value declaration
 	valueView := tview.NewTextView().SetWrap(false)
-	setBaseStyle(valueView, "Keys")
+	setBaseStyle(valueView, "Value")
 	valueView.SetDynamicColors(true)
 	valueView.SetScrollable(true)
 	valueView.SetWrap(false)
+	//valueView.Box.Border
 
 	flex.AddItem(bucketTree, 0, 1, true)
 	flex.AddItem(keyList, 0, 1, false)
@@ -97,10 +99,9 @@ func main() {
 	// Set bindings
 	setSelectedBucketHandler(app, bucketTree, keyList)
 	setSelectedKeyHandler(app, bucketTree, keyList, valueView)
-
-	valueView.SetDoneFunc(func(key tcell.Key) {
-		app.SetFocus(keyList)
-	})
+	setTabDestination(app, bucketTree, keyList)
+	setTabDestination(app, keyList, valueView)
+	setTabDestination(app, valueView, bucketTree)
 
 	fillBuckets(bucketTree)
 
@@ -119,4 +120,13 @@ func fillBuckets(bucketTree *tview.TreeView) {
 	for v := range buckets.Bukckets {
 		root.AddChild(tview.NewTreeNode(buckets.Bukckets[v]).SetColor(bucketsFontColor))
 	}
+}
+
+func setTabDestination(app *tview.Application, source InputCapturabler, destination tview.Primitive) {
+	source.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyTAB {
+			app.SetFocus(destination)
+		}
+		return event
+	})
 }
