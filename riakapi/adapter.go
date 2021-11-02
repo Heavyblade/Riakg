@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"sort"
 
 	"github.com/tidwall/pretty"
 )
@@ -95,6 +96,7 @@ func GetBucketKeys(bucketKey string) []string {
 	}{}
 
 	json.Unmarshal(respByte, &jsonStruct)
+	sort.Strings(jsonStruct.Keys)
 
 	return jsonStruct.Keys
 }
