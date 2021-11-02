@@ -8,22 +8,11 @@ import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 
+	"riakg/components/buckettree"
+	"riakg/components/keylist"
+	"riakg/components/valueview"
 	"riakg/riakapi"
 )
-
-var backgroundColor = tcell.NewRGBColor(26, 27, 38)
-var bucketsFontColor = tcell.NewRGBColor(47, 196, 222)
-var borderColor = tcell.NewRGBColor(59, 66, 97)
-
-//var keysFontColor = tcell.NewRGBColor(187, 154, 247)
-var keysFontColor = tcell.NewRGBColor(200, 200, 200)
-
-type BaseSettabler interface {
-	SetBorder(bool) *tview.Box
-	SetBackgroundColor(tcell.Color) *tview.Box
-	SetBorderColor(tcell.Color) *tview.Box
-	SetTitle(string) *tview.Box
-}
 
 type InputCapturabler interface {
 	SetInputCapture(capture func(event *tcell.EventKey) *tcell.EventKey) *tview.Box
@@ -54,13 +43,6 @@ func setSelectedKeyHandler(app *tview.Application, bucketTree *tview.TreeView, k
 	})
 }
 
-func setBaseStyle(component BaseSettabler, title string) {
-	component.SetBorder(true)
-	component.SetBackgroundColor(backgroundColor)
-	component.SetBorderColor(borderColor)
-	component.SetTitle(title)
-}
-
 func init() {
 	file, err := os.OpenFile("logs.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
@@ -74,23 +56,9 @@ func main() {
 	app := tview.NewApplication()
 	flex := tview.NewFlex()
 
-	// Tree declaracion
-	bucketTree := tview.NewTreeView()
-	setBaseStyle(bucketTree, riakapi.Host+":"+riakapi.Port)
-
-	// Key list declaration
-	keyList := tview.NewList()
-	setBaseStyle(keyList, "Keys")
-	keyList.ShowSecondaryText(false)
-	keyList.SetMainTextColor(keysFontColor)
-
-	// Value declaration
-	valueView := tview.NewTextView().SetWrap(false)
-	setBaseStyle(valueView, "Value")
-	valueView.SetDynamicColors(true)
-	valueView.SetScrollable(true)
-	valueView.SetWrap(false)
-	//valueView.Box.Border
+	bucketTree := buckettree.NewBucketTree()
+	keyList := keylist.NewKeyList()
+	valueView := valueview.NewValueView()
 
 	flex.AddItem(bucketTree, 0, 1, true)
 	flex.AddItem(keyList, 0, 1, false)
@@ -103,22 +71,10 @@ func main() {
 	setTabDestination(app, keyList, valueView)
 	setTabDestination(app, valueView, bucketTree)
 
-	fillBuckets(bucketTree)
+	buckettree.FillBuckets()
 
 	if err := app.SetRoot(flex, true).SetFocus(flex).Run(); err != nil {
 		panic(err)
-	}
-}
-
-func fillBuckets(bucketTree *tview.TreeView) {
-	buckets := riakapi.GetBuckets()
-
-	rootDir := "Buckets"
-	root := tview.NewTreeNode(rootDir).SetColor(bucketsFontColor)
-	bucketTree.SetRoot(root).SetCurrentNode(root)
-
-	for v := range buckets.Bukckets {
-		root.AddChild(tview.NewTreeNode(buckets.Bukckets[v]).SetColor(bucketsFontColor))
 	}
 }
 
