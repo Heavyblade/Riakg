@@ -33,13 +33,12 @@ func setSelectedBucketHandler(app *tview.Application, tree *tview.TreeView, keyL
 }
 
 func setSelectedKeyHandler(app *tview.Application, bucketTree *tview.TreeView, keyList *tview.List, valueView *tview.TextView) {
-	keyList.SetSelectedFunc(func(idx int, key, secondary string, shortcut rune) {
+	keyList.SetChangedFunc(func(idx int, key, secondary string, shortcut rune) {
 		currentBucket := bucketTree.GetCurrentNode().GetText()
 		value := riakapi.GetKeyValue(currentBucket, key)
 		valueView.Clear()
 		w := tview.ANSIWriter(valueView)
 		fmt.Fprint(w, value)
-		app.SetFocus(valueView)
 	})
 }
 
