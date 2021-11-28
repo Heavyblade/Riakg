@@ -7,6 +7,7 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+	"golang.design/x/clipboard"
 
 	"riakg/components/buckettree"
 	"riakg/components/keylist"
@@ -79,23 +80,30 @@ func setSelectedKeyHandler(app *tview.Application, bucketTree *tview.TreeView, k
 
 func setTabDestination(app *tview.Application, source InputCapturabler, destination tview.Primitive) {
 	source.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if w, ok := source.(*tview.List); ok && event.Key() == tcell.KeyCtrlD {
-			idx := w.GetCurrentItem()
-			key, bucket := w.GetItemText(idx)
+		switch event.Key() {
+		case tcell.KeyCtrlD:
+			if list, ok := source.(*tview.List); ok {
+				idx := list.GetCurrentItem()
+				key, bucket := list.GetItemText(idx)
 
-			if riakapi.DeleteKey(bucket, key) {
-				// Needed due a bug on the RemoveItem function when the item to remove
-				// is the first one on the list
-				if idx == 0 {
-					w.SetCurrentItem(1)
+				if riakapi.DeleteKey(bucket, key) {
+					// Needed due a bug on the RemoveItem function when the item to remove is the first one on the list
+					if idx == 0 {
+						list.SetCurrentItem(1)
+					}
+					list.RemoveItem(idx)
 				}
-				w.RemoveItem(idx)
 			}
-			return event
-		}
-		if event.Key() == tcell.KeyTAB {
+		case tcell.KeyCtrlY:
+			if text, ok := source.(*tview.TextView); ok {
+				clipboard.Write(clipboard.FmtText, []byte(text.GetText(true)))
+			}
+		case tcell.KeyCtrlQ:
+			app.Stop()
+		case tcell.KeyTAB:
 			app.SetFocus(destination)
 		}
+
 		return event
 	})
 }
