@@ -30,10 +30,10 @@ func GetUrl() string {
 	return fmt.Sprintf("http://%s:%s", Host, Port)
 }
 
-func Get(url string, params, headers map[string]string) (error, []byte) {
+func Request(verb, url string, params, headers map[string]string) (error, []byte) {
 	client := &http.Client{}
 
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest(verb, url, nil)
 	if err != nil {
 		fmt.Printf("Error on creating request %v", err)
 		return err, []byte{}
@@ -62,6 +62,14 @@ func Get(url string, params, headers map[string]string) (error, []byte) {
 	}
 
 	return nil, respByte
+}
+
+func Get(url string, params, headers map[string]string) (error, []byte) {
+	return Request("GET", url, params, headers)
+}
+
+func Delete(url string, params, headers map[string]string) (error, []byte) {
+	return Request("DELETE", url, params, headers)
 }
 
 func GetBuckets() BucketResponse {
@@ -114,4 +122,14 @@ func GetKeyValue(bucket, key string) string {
 	prettified := pretty.Pretty(respByte)
 	highlighted := pretty.Color([]byte(prettified), nil)
 	return string(highlighted)
+}
+
+func DeleteKey(bucket, key string) bool {
+	escapedBucket := url.QueryEscape(bucket)
+	escapedKey := url.QueryEscape(key)
+	targetUrl := GetUrl() + "/buckets/" + escapedBucket + "/keys/" + escapedKey
+	headers := map[string]string{"Accept": "application/json"}
+
+	err, _ := Delete(targetUrl, map[string]string{}, headers)
+	return err == nil
 }
