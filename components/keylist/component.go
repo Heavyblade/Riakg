@@ -1,11 +1,55 @@
 package keylist
 
 import (
+	"fmt"
+	"riakg/components/container"
 	"riakg/components/shared"
+	"riakg/riakapi"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
+
+func init() {
+	component := NewKeyList()
+	container.AddComponent("keyList", component)
+
+	container.AfterInitialize(func() {
+		valueViewUntyped, _ := container.GetComponent("valueView")
+		bucketTreeUntyped, _ := container.GetComponent("bucketTree")
+
+		valueView := valueViewUntyped.(*tview.TextView)
+		bucketTree := bucketTreeUntyped.(*tview.TreeView)
+
+		shared.SetTabDestination(container.App, component, valueView)
+		tabCapturefunc := component.GetInputCapture()
+
+		component.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+			tabCapturefunc(event)
+			if event.Key() == tcell.KeyCtrlD {
+				idx := component.GetCurrentItem()
+				key, bucket := component.GetItemText(idx)
+
+				if riakapi.DeleteKey(bucket, key) {
+					// Needed due a bug on the RemoveItem function when the item to remove is the first one on the component
+					if idx == 0 {
+						component.SetCurrentItem(1)
+					}
+					component.RemoveItem(idx)
+				}
+			}
+			return event
+		})
+
+		component.SetChangedFunc(func(idx int, key, secondary string, shortcut rune) {
+			currentBucket := bucketTree.GetCurrentNode().GetText()
+			value := riakapi.GetKeyValue(currentBucket, key)
+			valueView.Clear()
+			w := tview.ANSIWriter(valueView)
+			fmt.Fprint(w, value)
+		})
+	})
+}
 
 var keysFontColor = tcell.NewRGBColor(200, 200, 200)
 

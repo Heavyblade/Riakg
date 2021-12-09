@@ -16,9 +16,26 @@ type BaseSettabler interface {
 	SetTitle(string) *tview.Box
 }
 
+type InputCapturabler interface {
+	SetInputCapture(capture func(event *tcell.EventKey) *tcell.EventKey) *tview.Box
+}
+
 func SetBaseStyle(component BaseSettabler, title string) {
 	component.SetBorder(true)
 	component.SetBackgroundColor(backgroundColor)
 	component.SetBorderColor(borderColor)
 	component.SetTitle(title)
+}
+
+func SetTabDestination(app *tview.Application, source InputCapturabler, destination tview.Primitive) {
+	source.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		switch event.Key() {
+		case tcell.KeyCtrlQ:
+			app.Stop()
+		case tcell.KeyTAB:
+			app.SetFocus(destination)
+		}
+
+		return event
+	})
 }
