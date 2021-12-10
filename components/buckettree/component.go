@@ -30,7 +30,7 @@ func init() {
 			container.App.SetFocus(keyList)
 		})
 
-		FillBuckets()
+		fillBuckets()
 	})
 }
 
@@ -41,7 +41,7 @@ func NewBucketTree() *tview.TreeView {
 	return bucketTree
 }
 
-func FillBuckets() {
+func fillBuckets() {
 	buckets := riakapi.GetBuckets()
 	bucketTreeUntyped, _ := container.GetComponent("bucketTree")
 	tree := bucketTreeUntyped.(*tview.TreeView)
