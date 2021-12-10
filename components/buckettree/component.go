@@ -20,18 +20,22 @@ func init() {
 		keyList := keyListUntyped.(*tview.List)
 
 		shared.SetTabDestination(component, keyList)
-		component.SetSelectedFunc(func(node *tview.TreeNode) {
-			keyList.Clear()
-			keys := riakapi.GetBucketKeys(node.GetText())
-
-			for i := range keys {
-				keyList.AddItem(keys[i], node.GetText(), 0, func() {})
-			}
-			container.App.SetFocus(keyList)
-		})
+		component.SetSelectedFunc(selectedLeafHandler(keyList))
 
 		fillBuckets()
 	})
+}
+
+func selectedLeafHandler(keyList *tview.List) func(node *tview.TreeNode) {
+	return func(node *tview.TreeNode) {
+		keyList.Clear()
+		keys := riakapi.GetBucketKeys(node.GetText())
+
+		for i := range keys {
+			keyList.AddItem(keys[i], node.GetText(), 0, func() {})
+		}
+		container.App.SetFocus(keyList)
+	}
 }
 
 func NewBucketTree() *tview.TreeView {
