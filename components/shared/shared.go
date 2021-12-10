@@ -1,6 +1,8 @@
 package shared
 
 import (
+	"riakg/components/container"
+
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
@@ -27,13 +29,13 @@ func SetBaseStyle(component BaseSettabler, title string) {
 	component.SetTitle(title)
 }
 
-func SetTabDestination(app *tview.Application, source InputCapturabler, destination tview.Primitive) {
+func SetTabDestination(source InputCapturabler, destination tview.Primitive) {
 	source.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyCtrlQ:
-			app.Stop()
+			container.App.Stop()
 		case tcell.KeyTAB:
-			app.SetFocus(destination)
+			container.App.SetFocus(destination)
 		}
 
 		return event

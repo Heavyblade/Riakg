@@ -21,7 +21,7 @@ func init() {
 		valueView := valueViewUntyped.(*tview.TextView)
 		bucketTree := bucketTreeUntyped.(*tview.TreeView)
 
-		shared.SetTabDestination(container.App, component, valueView)
+		shared.SetTabDestination(component, valueView)
 		tabCapturefunc := component.GetInputCapture()
 
 		component.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {

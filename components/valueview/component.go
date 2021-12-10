@@ -16,7 +16,7 @@ func init() {
 	container.AfterInitialize(func() {
 		destination, _ := container.GetComponent("bucketTree")
 
-		shared.SetTabDestination(container.App, component, destination.(*tview.TreeView))
+		shared.SetTabDestination(component, destination.(*tview.TreeView))
 		fun := component.GetInputCapture()
 
 		component.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {

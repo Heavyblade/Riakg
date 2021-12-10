@@ -19,7 +19,7 @@ func init() {
 		keyListUntyped, _ := container.GetComponent("keyList")
 		keyList := keyListUntyped.(*tview.List)
 
-		shared.SetTabDestination(container.App, component, keyList)
+		shared.SetTabDestination(component, keyList)
 		component.SetSelectedFunc(func(node *tview.TreeNode) {
 			keyList.Clear()
 			keys := riakapi.GetBucketKeys(node.GetText())
