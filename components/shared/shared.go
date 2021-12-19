@@ -23,10 +23,13 @@ type InputCapturabler interface {
 }
 
 func SetBaseStyle(component BaseSettabler, title string) {
-	component.SetBorder(true)
 	component.SetBackgroundColor(backgroundColor)
-	component.SetBorderColor(borderColor)
-	component.SetTitle(title)
+
+	if len(title) > 0 {
+		component.SetTitle(title)
+		component.SetBorder(true)
+		component.SetBorderColor(borderColor)
+	}
 }
 
 func SetTabDestination(source InputCapturabler, destination tview.Primitive) {

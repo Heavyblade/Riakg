@@ -9,6 +9,7 @@ import (
 	_ "riakg/components/buckettree"
 	"riakg/components/container"
 	_ "riakg/components/keylist"
+	"riakg/components/shared"
 	_ "riakg/components/valueview"
 )
 
@@ -33,10 +34,23 @@ func main() {
 
 	flex := tview.NewFlex()
 	flex.AddItem(bucketTreeUntyped.(*tview.TreeView), 0, 1, true)
-	flex.AddItem(keyListUntyped.(*tview.List), 0, 1, false)
-	flex.AddItem(valueViewUntyped.(*tview.TextView), 0, 2, false)
+	flex.AddItem(wrappWithOptions(keyListUntyped.(*tview.List), "Ctrl+d Delete key"), 0, 1, false)
+	flex.AddItem(wrappWithOptions(valueViewUntyped.(*tview.TextView), "Crrl+y Copy content"), 0, 2, false)
 
 	if err := app.SetRoot(flex, true).SetFocus(flex).Run(); err != nil {
 		panic(err)
 	}
+}
+
+func wrappWithOptions(comp tview.Primitive, helpText string) tview.Primitive {
+	text := tview.NewTextView().SetText(helpText)
+	text.SetTextAlign(tview.AlignCenter)
+
+	shared.SetBaseStyle(text, "")
+	flex := tview.NewFlex()
+	flex.AddItem(comp, 0, 1, true)
+	flex.AddItem(text, 2, 1, false)
+	flex.SetDirection(tview.FlexRow)
+
+	return flex
 }
