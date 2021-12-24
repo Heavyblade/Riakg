@@ -46,7 +46,7 @@ func SetTabDestination(source InputCapturabler, destination tview.Primitive) {
 	})
 }
 
-func WrapWithShortCuts(comp tview.Primitive, helpText []string) tview.Primitive {
+func WrapWithShortCuts(comp tview.Primitive, helpText []string) *tview.Flex {
 	text := tview.NewTextView().SetText(strings.Join(helpText, "\n"))
 	text.SetTextAlign(tview.AlignCenter)
 

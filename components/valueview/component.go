@@ -13,9 +13,13 @@ func init() {
 	component := NewValueView()
 	container.AddComponent("valueView", component)
 
-	wrapped := shared.WrapWithShortCuts(component, []string{"Ctrl-y: Copy value"})
-	container.AddComponent("WrappedvalueView", wrapped)
+	wrapped := shared.WrapWithShortCuts(component, []string{"Ctrl-y: Copy value", "Ctrl-s: Change key"})
+	pages := tview.NewPages()
+	modal := buildModal(pages)
+	pages.AddPage("valueView", wrapped, true, true)
+	pages.AddPage("modal", modal, true, false)
 
+	container.AddComponent("WrappedvalueView", pages)
 	container.AfterInitialize(func() {
 		destination, _ := container.GetComponent("bucketTree")
 
@@ -28,24 +32,30 @@ func init() {
 				clipboard.Write(clipboard.FmtText, []byte(component.GetText(true)))
 			}
 			if event.Key() == tcell.KeyCtrlS {
-				container.App.SetRoot(changeFunction(), true)
+				pages.SwitchToPage("modal")
+				container.App.SetFocus(modal)
 			}
 			return event
 		})
 	})
 }
 
-func changeFunction() *tview.Form {
+func returnToValueView(pages *tview.Pages) func() {
+	destination, _ := container.GetComponent("valueView")
+	return func() {
+		pages.SwitchToPage("valueView")
+		container.App.SetFocus(destination.(*tview.TextView))
+	}
+}
+
+func buildModal(pages *tview.Pages) *tview.Form {
 	form := tview.NewForm().
-		AddDropDown("Title", []string{"Mr.", "Ms.", "Mrs.", "Dr.", "Prof."}, 0, nil).
-		AddInputField("First name", "", 20, nil, nil).
-		AddInputField("Last name", "", 20, nil, nil).
-		AddCheckbox("Age 18+", false, nil).
-		AddPasswordField("Password", "", 10, '*', nil).
-		AddButton("Save", nil).
-		AddButton("Quit", func() {
-			container.App.Stop()
-		})
+		AddInputField("Key", "", 50, nil, nil).
+		AddInputField("Value", "", 50, nil, nil).
+		AddButton("Save", returnToValueView(pages)).
+		AddButton("Quit", returnToValueView(pages))
+
+	shared.SetBaseStyle(form, "Update Key")
 
 	return form
 }
