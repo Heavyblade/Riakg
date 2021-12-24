@@ -14,6 +14,9 @@ func init() {
 	component := NewKeyList()
 	container.AddComponent("keyList", component)
 
+	wrapped := shared.WrapWithShortCuts(component, []string{"Ctrl-d: Delete key"})
+	container.AddComponent("WrappedkeyList", wrapped)
+
 	container.AfterInitialize(func() {
 		valueViewUntyped, _ := container.GetComponent("valueView")
 		bucketTreeUntyped, _ := container.GetComponent("bucketTree")

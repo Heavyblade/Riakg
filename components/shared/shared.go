@@ -2,6 +2,7 @@ package shared
 
 import (
 	"riakg/components/container"
+	"strings"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -43,4 +44,29 @@ func SetTabDestination(source InputCapturabler, destination tview.Primitive) {
 
 		return event
 	})
+}
+
+func WrapWithShortCuts(comp tview.Primitive, helpText []string) tview.Primitive {
+	text := tview.NewTextView().SetText(strings.Join(helpText, "\n"))
+	text.SetTextAlign(tview.AlignCenter)
+
+	SetBaseStyle(text, "")
+	flex := tview.NewFlex()
+	flex.AddItem(comp, 0, 1, true)
+	flex.AddItem(text, 2, 1, false)
+	flex.SetDirection(tview.FlexRow)
+
+	return flex
+}
+
+func WrappInPages(pageList map[string]tview.Primitive) tview.Primitive {
+	pages := tview.NewPages()
+	justFirst := true
+
+	for keym, page := range pageList {
+		pages.AddPage(keym, page, false, justFirst)
+		justFirst = false
+	}
+
+	return pages
 }

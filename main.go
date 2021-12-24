@@ -9,7 +9,6 @@ import (
 	_ "riakg/components/buckettree"
 	"riakg/components/container"
 	_ "riakg/components/keylist"
-	"riakg/components/shared"
 	_ "riakg/components/valueview"
 )
 
@@ -27,30 +26,31 @@ func main() {
 	container.App = app
 
 	bucketTreeUntyped, _ := container.GetComponent("bucketTree")
-	keyListUntyped, _ := container.GetComponent("keyList")
-	valueViewUntyped, _ := container.GetComponent("valueView")
+	keyListUntyped, _ := container.GetComponent("WrappedkeyList")
+	valueViewUntyped, _ := container.GetComponent("WrappedvalueView")
 
 	container.ExecuteAfterInitialize()
 
 	flex := tview.NewFlex()
 	flex.AddItem(bucketTreeUntyped.(*tview.TreeView), 0, 1, true)
-	flex.AddItem(wrappWithOptions(keyListUntyped.(*tview.List), "Ctrl+d Delete key"), 0, 1, false)
-	flex.AddItem(wrappWithOptions(valueViewUntyped.(*tview.TextView), "Crrl+y Copy content"), 0, 2, false)
+	flex.AddItem(keyListUntyped.(*tview.Flex), 0, 1, false)
+	flex.AddItem(valueViewUntyped.(*tview.Flex), 0, 2, false)
 
 	if err := app.SetRoot(flex, true).SetFocus(flex).Run(); err != nil {
 		panic(err)
 	}
 }
 
-func wrappWithOptions(comp tview.Primitive, helpText string) tview.Primitive {
-	text := tview.NewTextView().SetText(helpText)
-	text.SetTextAlign(tview.AlignCenter)
+func buildModal(pages *tview.Pages) *tview.Form {
+	form := tview.NewForm().
+		AddInputField("Key", "", 20, nil, nil).
+		AddInputField("Value", "", 20, nil, nil).
+		AddButton("Save", func() {
+			pages.SwitchToPage("Value")
+		}).
+		AddButton("Quit", func() {
+			pages.SwitchToPage("Value")
+		})
 
-	shared.SetBaseStyle(text, "")
-	flex := tview.NewFlex()
-	flex.AddItem(comp, 0, 1, true)
-	flex.AddItem(text, 2, 1, false)
-	flex.SetDirection(tview.FlexRow)
-
-	return flex
+	return form
 }
