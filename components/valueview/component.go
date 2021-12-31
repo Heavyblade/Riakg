@@ -1,11 +1,13 @@
 package valueview
 
 import (
+	"fmt"
 	"riakg/components/container"
 	"riakg/components/shared"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+	"github.com/tidwall/pretty"
 	"golang.design/x/clipboard"
 )
 
@@ -14,12 +16,8 @@ func init() {
 	container.AddComponent("valueView", component)
 
 	wrapped := shared.WrapWithShortCuts(component, []string{"Ctrl-y: Copy value", "Ctrl-s: Change key"})
-	pages := tview.NewPages()
-	modal := buildModal(pages)
-	pages.AddPage("valueView", wrapped, true, true)
-	pages.AddPage("modal", modal, true, false)
+	container.AddComponent("WrappedvalueView", wrapped)
 
-	container.AddComponent("WrappedvalueView", pages)
 	container.AfterInitialize(func() {
 		destination, _ := container.GetComponent("bucketTree")
 
@@ -31,33 +29,17 @@ func init() {
 			if event.Key() == tcell.KeyCtrlY {
 				clipboard.Write(clipboard.FmtText, []byte(component.GetText(true)))
 			}
-			if event.Key() == tcell.KeyCtrlS {
-				pages.SwitchToPage("modal")
-				container.App.SetFocus(modal)
+			if event.Key() == tcell.KeyCtrlV {
+				prettified := pretty.Pretty(clipboard.Read(clipboard.FmtText))
+				highlighted := pretty.Color([]byte(prettified), nil)
+
+				component.Clear()
+				w := tview.ANSIWriter(component)
+				fmt.Fprint(w, string(highlighted))
 			}
 			return event
 		})
 	})
-}
-
-func returnToValueView(pages *tview.Pages) func() {
-	destination, _ := container.GetComponent("valueView")
-	return func() {
-		pages.SwitchToPage("valueView")
-		container.App.SetFocus(destination.(*tview.TextView))
-	}
-}
-
-func buildModal(pages *tview.Pages) *tview.Form {
-	form := tview.NewForm().
-		AddInputField("Key", "", 50, nil, nil).
-		AddInputField("Value", "", 50, nil, nil).
-		AddButton("Save", returnToValueView(pages)).
-		AddButton("Quit", returnToValueView(pages))
-
-	shared.SetBaseStyle(form, "Update Key")
-
-	return form
 }
 
 func NewValueView() *tview.TextView {

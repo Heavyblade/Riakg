@@ -34,7 +34,7 @@ func main() {
 	flex := tview.NewFlex()
 	flex.AddItem(bucketTreeUntyped.(*tview.TreeView), 0, 1, true)
 	flex.AddItem(keyListUntyped.(*tview.Flex), 0, 1, false)
-	flex.AddItem(valueViewUntyped.(*tview.Pages), 0, 2, false)
+	flex.AddItem(valueViewUntyped.(*tview.Flex), 0, 2, false)
 
 	if err := app.SetRoot(flex, true).SetFocus(flex).Run(); err != nil {
 		panic(err)
