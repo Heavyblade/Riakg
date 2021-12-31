@@ -11,6 +11,7 @@ import (
 var backgroundColor = tcell.NewRGBColor(26, 27, 38)
 var bucketsFontColor = tcell.NewRGBColor(47, 196, 222)
 var borderColor = tcell.NewRGBColor(59, 66, 97)
+var selectedColor = tcell.NewRGBColor(251, 158, 101)
 
 type BaseSettabler interface {
 	SetBorder(bool) *tview.Box
@@ -39,21 +40,28 @@ func SetTabDestination(source InputCapturabler, destination tview.Primitive) {
 		case tcell.KeyCtrlQ:
 			container.App.Stop()
 		case tcell.KeyTAB:
-			container.App.SetFocus(destination)
+			SetTabFocusAndBorders(source, destination)
 		}
 
 		return event
 	})
 }
 
+func SetTabFocusAndBorders(source InputCapturabler, destination tview.Primitive) {
+	container.App.SetFocus(destination)
+	source.(BaseSettabler).SetBorderColor(borderColor)
+	destination.(BaseSettabler).SetBorderColor(selectedColor)
+}
+
 func WrapWithShortCuts(comp tview.Primitive, helpText []string) *tview.Flex {
 	text := tview.NewTextView().SetText(strings.Join(helpText, "\n"))
-	text.SetTextAlign(tview.AlignCenter)
+	text.SetTextAlign(tview.AlignLeft)
 
+	text.SetBorderPadding(0, 0, 1, 0)
 	SetBaseStyle(text, "")
 	flex := tview.NewFlex()
 	flex.AddItem(comp, 0, 1, true)
-	flex.AddItem(text, 2, 1, false)
+	flex.AddItem(text, 1+len(helpText), 1, false)
 	flex.SetDirection(tview.FlexRow)
 
 	return flex

@@ -15,7 +15,7 @@ func init() {
 	component := NewValueView()
 	container.AddComponent("valueView", component)
 
-	wrapped := shared.WrapWithShortCuts(component, []string{"Ctrl-y: Copy value", "Ctrl-s: Change key"})
+	wrapped := shared.WrapWithShortCuts(component, []string{"Ctrl-y: Copy", "Ctrl-s: Save", "Ctrl-v: Paste new value"})
 	container.AddComponent("WrappedvalueView", wrapped)
 
 	container.AfterInitialize(func() {
