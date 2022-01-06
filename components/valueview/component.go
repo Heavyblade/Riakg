@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"riakg/components/container"
 	"riakg/components/shared"
+	"riakg/riakapi"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -20,26 +21,51 @@ func init() {
 
 	container.AfterInitialize(func() {
 		destination, _ := container.GetComponent("bucketTree")
+		bucketTree := destination.(*tview.TreeView)
 
-		shared.SetTabDestination(component, destination.(*tview.TreeView))
+		shared.SetTabDestination(component, bucketTree)
 		fun := component.GetInputCapture()
 
 		component.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 			fun(event)
-			if event.Key() == tcell.KeyCtrlY {
-				clipboard.Write(clipboard.FmtText, []byte(component.GetText(true)))
-			}
-			if event.Key() == tcell.KeyCtrlV {
-				prettified := pretty.Pretty(clipboard.Read(clipboard.FmtText))
-				highlighted := pretty.Color([]byte(prettified), nil)
 
-				component.Clear()
-				w := tview.ANSIWriter(component)
-				fmt.Fprint(w, string(highlighted))
+			switch event.Key() {
+			case tcell.KeyCtrlY:
+				copyValueToClipboard(component)
+			case tcell.KeyCtrlV:
+				updateValue(component, clipboard.Read(clipboard.FmtText))
+			case tcell.KeyCtrlS:
+				modal := shared.ConfirmAction("Are you sure?", func(modal *tview.Modal) {
+					keyListUntyped, _ := container.GetComponent("keyList")
+					keyList := keyListUntyped.(*tview.List)
+
+					currentBucket := bucketTree.GetCurrentNode().GetText()
+					key, _ := keyList.GetItemText(keyList.GetCurrentItem())
+					riakapi.UpdateKeyValue(currentBucket, key, component.GetText(true))
+					wrapped.RemoveItem(modal)
+					container.App.SetFocus(component)
+				}, func(modal *tview.Modal) {
+					wrapped.RemoveItem(modal)
+					container.App.SetFocus(component)
+				})
+				wrapped.AddItem(modal, 2, 1, true)
+				container.App.SetFocus(modal)
 			}
 			return event
 		})
 	})
+}
+
+func copyValueToClipboard(component *tview.TextView) {
+	clipboard.Write(clipboard.FmtText, []byte(component.GetText(true)))
+}
+
+func updateValue(component *tview.TextView, newValue []byte) {
+	prettified := pretty.Pretty(newValue)
+	highlighted := pretty.Color([]byte(prettified), nil)
+	component.Clear()
+	w := tview.ANSIWriter(component)
+	fmt.Fprint(w, string(highlighted))
 }
 
 func NewValueView() *tview.TextView {

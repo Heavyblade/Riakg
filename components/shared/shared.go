@@ -8,10 +8,11 @@ import (
 	"github.com/rivo/tview"
 )
 
-var backgroundColor = tcell.NewRGBColor(26, 27, 38)
-var bucketsFontColor = tcell.NewRGBColor(47, 196, 222)
-var borderColor = tcell.NewRGBColor(59, 66, 97)
-var selectedColor = tcell.NewRGBColor(251, 158, 101)
+var BackgroundColor = tcell.NewRGBColor(26, 27, 38)
+var BucketsFontColor = tcell.NewRGBColor(47, 196, 222)
+var BorderColor = tcell.NewRGBColor(59, 66, 97)
+var SelectedColor = tcell.NewRGBColor(251, 158, 101)
+var FontBlueColor = tcell.NewRGBColor(118, 157, 239)
 
 type BaseSettabler interface {
 	SetBorder(bool) *tview.Box
@@ -25,12 +26,12 @@ type InputCapturabler interface {
 }
 
 func SetBaseStyle(component BaseSettabler, title string) {
-	component.SetBackgroundColor(backgroundColor)
+	component.SetBackgroundColor(BackgroundColor)
 
 	if len(title) > 0 {
 		component.SetTitle(title)
 		component.SetBorder(true)
-		component.SetBorderColor(borderColor)
+		component.SetBorderColor(BorderColor)
 	}
 }
 
@@ -49,8 +50,8 @@ func SetTabDestination(source InputCapturabler, destination tview.Primitive) {
 
 func SetTabFocusAndBorders(source InputCapturabler, destination tview.Primitive) {
 	container.App.SetFocus(destination)
-	source.(BaseSettabler).SetBorderColor(borderColor)
-	destination.(BaseSettabler).SetBorderColor(selectedColor)
+	source.(BaseSettabler).SetBorderColor(BorderColor)
+	destination.(BaseSettabler).SetBorderColor(SelectedColor)
 }
 
 func WrapWithShortCuts(comp tview.Primitive, helpText []string) *tview.Flex {
@@ -67,7 +68,7 @@ func WrapWithShortCuts(comp tview.Primitive, helpText []string) *tview.Flex {
 	return flex
 }
 
-func WrappInPages(pageList map[string]tview.Primitive) tview.Primitive {
+func WrappInPages(pageList map[string]tview.Primitive) *tview.Pages {
 	pages := tview.NewPages()
 	justFirst := true
 
@@ -77,4 +78,21 @@ func WrappInPages(pageList map[string]tview.Primitive) tview.Primitive {
 	}
 
 	return pages
+}
+
+func ConfirmAction(message string, yes, no func(modal *tview.Modal)) *tview.Modal {
+	modal := tview.NewModal()
+
+	modal.SetText(message).
+		AddButtons([]string{"Yes", "Cancel"}).
+		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
+			if buttonLabel == "Yes" {
+				yes(modal)
+			} else {
+				no(modal)
+			}
+		})
+	modal.SetBackgroundColor(BackgroundColor)
+	modal.SetButtonTextColor(FontBlueColor)
+	return modal
 }

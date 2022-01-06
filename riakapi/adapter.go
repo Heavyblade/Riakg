@@ -1,8 +1,10 @@
 package riakapi
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -30,10 +32,10 @@ func GetUrl() string {
 	return fmt.Sprintf("http://%s:%s", Host, Port)
 }
 
-func Request(verb, url string, params, headers map[string]string) (error, []byte) {
+func Request(verb, url string, params, headers map[string]string, body io.Reader) (error, []byte) {
 	client := &http.Client{}
 
-	req, err := http.NewRequest(verb, url, nil)
+	req, err := http.NewRequest(verb, url, body)
 	if err != nil {
 		fmt.Printf("Error on creating request %v", err)
 		return err, []byte{}
@@ -65,11 +67,19 @@ func Request(verb, url string, params, headers map[string]string) (error, []byte
 }
 
 func Get(url string, params, headers map[string]string) (error, []byte) {
-	return Request("GET", url, params, headers)
+	return Request("GET", url, params, headers, nil)
 }
 
 func Delete(url string, params, headers map[string]string) (error, []byte) {
-	return Request("DELETE", url, params, headers)
+	return Request("DELETE", url, params, headers, nil)
+}
+
+func Put(url string, params, headers map[string]string, body string) (error, []byte) {
+	return Request("PUT", url, params, headers, bytes.NewBuffer([]byte(body)))
+}
+
+func Post(url string, params, headers map[string]string, body string) (error, []byte) {
+	return Request("Post", url, params, headers, bytes.NewBuffer([]byte(body)))
 }
 
 func GetBuckets() BucketResponse {
@@ -131,5 +141,15 @@ func DeleteKey(bucket, key string) bool {
 	headers := map[string]string{"Accept": "application/json"}
 
 	err, _ := Delete(targetUrl, map[string]string{}, headers)
+	return err == nil
+}
+
+func UpdateKeyValue(bucket, key, value string) bool {
+	escapedBucket := url.QueryEscape(bucket)
+	escapedKey := url.QueryEscape(key)
+	targetUrl := GetUrl() + "/buckets/" + escapedBucket + "/keys/" + escapedKey
+	headers := map[string]string{"Accept": "application/json", "Content-Type": "application/json"}
+
+	err, _ := Put(targetUrl, map[string]string{}, headers, value)
 	return err == nil
 }
