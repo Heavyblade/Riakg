@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"sort"
 
 	"github.com/tidwall/pretty"
@@ -15,6 +16,8 @@ import (
 
 var Host string = "localhost"
 var Port string = "18098"
+var Username string
+var Password string
 
 type BucketResponse struct {
 	Bukckets []string `json:"buckets"`
@@ -39,6 +42,9 @@ func Request(verb, url string, params, headers map[string]string, body io.Reader
 	if err != nil {
 		fmt.Printf("Error on creating request %v", err)
 		return err, []byte{}
+	}
+	if Username != "" && Password != "" {
+		req.SetBasicAuth(Username, Password)
 	}
 
 	q := req.URL.Query()
@@ -89,7 +95,8 @@ func GetBuckets() BucketResponse {
 
 	err, respByte := Get(targetUrl, params, headers)
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
 	}
 
 	buckets := BucketResponse{}
@@ -106,7 +113,8 @@ func GetBucketKeys(bucketKey string) []string {
 
 	err, respByte := Get(targetUrl, params, headers)
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
 	}
 
 	jsonStruct := struct {
@@ -127,7 +135,8 @@ func GetKeyValue(bucket, key string) string {
 
 	err, respByte := Get(targetUrl, map[string]string{}, headers)
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
 	}
 	prettified := pretty.Pretty(respByte)
 	highlighted := pretty.Color([]byte(prettified), nil)
