@@ -24,6 +24,8 @@ func init() {
 func main() {
 	app := tview.NewApplication()
 	container.App = app
+	flex := tview.NewFlex()
+	container.AddComponent("mainLayout", flex)
 
 	bucketTreeUntyped, _ := container.GetComponent("bucketTree")
 	keyListUntyped, _ := container.GetComponent("WrappedkeyList")
@@ -31,7 +33,6 @@ func main() {
 
 	container.ExecuteAfterInitialize()
 
-	flex := tview.NewFlex()
 	flex.AddItem(bucketTreeUntyped.(*tview.TreeView), 0, 1, true)
 	flex.AddItem(keyListUntyped.(*tview.Flex), 0, 1, false)
 	flex.AddItem(valueViewUntyped.(*tview.Flex), 0, 2, false)

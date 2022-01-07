@@ -80,19 +80,28 @@ func WrappInPages(pageList map[string]tview.Primitive) *tview.Pages {
 	return pages
 }
 
-func ConfirmAction(message string, yes, no func(modal *tview.Modal)) *tview.Modal {
-	modal := tview.NewModal()
+func ConfirmAction(message string, origin tview.Primitive, yes, no func(modal *tview.Modal)) *tview.Modal {
+	untypedFlex, _ := container.GetComponent("mainLayout")
+	flex := untypedFlex.(*tview.Flex)
 
+	modal := tview.NewModal()
 	modal.SetText(message).
 		AddButtons([]string{"Yes", "Cancel"}).
 		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
-			if buttonLabel == "Yes" {
+			flex.RemoveItem(modal)
+			if buttonLabel == "Yes" && yes != nil {
 				yes(modal)
-			} else {
+			}
+			if buttonLabel == "Cancel" && no != nil {
 				no(modal)
 			}
+			container.App.SetFocus(origin)
 		})
 	modal.SetBackgroundColor(BackgroundColor)
 	modal.SetButtonTextColor(FontBlueColor)
+
+	flex.AddItem(modal, 2, 1, true)
+	container.App.SetFocus(modal)
+
 	return modal
 }

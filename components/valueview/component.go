@@ -35,21 +35,14 @@ func init() {
 			case tcell.KeyCtrlV:
 				updateValue(component, clipboard.Read(clipboard.FmtText))
 			case tcell.KeyCtrlS:
-				modal := shared.ConfirmAction("Are you sure?", func(modal *tview.Modal) {
+				shared.ConfirmAction("Are you sure?", component, func(modal *tview.Modal) {
 					keyListUntyped, _ := container.GetComponent("keyList")
 					keyList := keyListUntyped.(*tview.List)
 
 					currentBucket := bucketTree.GetCurrentNode().GetText()
 					key, _ := keyList.GetItemText(keyList.GetCurrentItem())
 					riakapi.UpdateKeyValue(currentBucket, key, component.GetText(true))
-					wrapped.RemoveItem(modal)
-					container.App.SetFocus(component)
-				}, func(modal *tview.Modal) {
-					wrapped.RemoveItem(modal)
-					container.App.SetFocus(component)
-				})
-				wrapped.AddItem(modal, 2, 1, true)
-				container.App.SetFocus(modal)
+				}, nil)
 			}
 			return event
 		})
