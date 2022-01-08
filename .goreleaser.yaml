@@ -29,3 +29,14 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
+brews:
+  - tap:
+      owner: heavyblade
+      name: homebrew-riakg
+    commit_author:
+      name: CristianVasquez
+      email: cristianvg2003@gmail.com
+    homepage: "https://github.com/heavyblade/riakg"
+    description: "A command-line interface for the Riak database through its HTTP API"
+    license: "MIT"
+    skip_upload: auto
