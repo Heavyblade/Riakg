@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 
@@ -13,6 +14,8 @@ import (
 	_ "riakg/components/valueview"
 	"riakg/riakapi"
 )
+
+var Version string = "0.3.1"
 
 func init() {
 	getParams()
@@ -46,6 +49,13 @@ func main() {
 }
 
 func getParams() {
+	for _, v := range os.Args {
+		if v == "-v" || v == "-version" || v == "version" {
+			fmt.Println(Version)
+			os.Exit(1)
+		}
+	}
+
 	host := flag.String("host", "localhost", "server ip or domain")
 	port := flag.String("port", "8098", "server port")
 	username := flag.String("username", "", "Username")
