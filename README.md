@@ -30,6 +30,20 @@ features:
 - Updating a value for key (by pressiong Ctrl-V the content on the clipboard will replace the current content on the value section.
 - Saving the value (by pressing Ctrl-S the current value of the value text section will be sent to replace the current value of the key on the bucket) 
 
+### command line options:
+
+```bash
+Usage of riakg:
+  -host string
+        server ip or domain (default "localhost")
+  -password string
+        password
+  -port string
+        server port (default "8098")
+  -username string
+        Username
+```
+
 ## License (MIT)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
