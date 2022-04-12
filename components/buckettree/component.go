@@ -28,13 +28,17 @@ func init() {
 
 func selectedLeafHandler(keyList *tview.List, bucketTree *tview.TreeView) func(node *tview.TreeNode) {
 	return func(node *tview.TreeNode) {
+		valueViewUntyped, _ := container.GetComponent("valueView")
+		valueView := valueViewUntyped.(*tview.TextView)
+
 		keyList.Clear()
+		valueView.Clear()
 		keys := riakapi.GetBucketKeys(node.GetText())
 
 		for i := range keys {
 			keyList.AddItem(keys[i], node.GetText(), 0, func() {})
 		}
-		shared.SetTabFocusAndBorders(bucketTree, keyList)
+		container.App.SetFocus(keyList)
 	}
 }
 

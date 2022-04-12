@@ -41,6 +41,7 @@ func init() {
 						}
 						component.RemoveItem(idx)
 					}
+					valueView.Clear()
 				}, nil)
 			}
 
@@ -56,6 +57,7 @@ func init() {
 			currentBucket := bucketTree.GetCurrentNode().GetText()
 			value := riakapi.GetKeyValue(currentBucket, key)
 			valueView.Clear()
+			valueView.ScrollToBeginning()
 			w := tview.ANSIWriter(valueView)
 			fmt.Fprint(w, value)
 		})
