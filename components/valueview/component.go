@@ -6,10 +6,10 @@ import (
 	"riakg/components/shared"
 	"riakg/riakapi"
 
+	"github.com/atotto/clipboard"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 	"github.com/tidwall/pretty"
-	"golang.design/x/clipboard"
 )
 
 func init() {
@@ -33,7 +33,8 @@ func init() {
 			case tcell.KeyCtrlY:
 				copyValueToClipboard(component)
 			case tcell.KeyCtrlV:
-				updateValue(component, clipboard.Read(clipboard.FmtText))
+				value, _ := clipboard.ReadAll()
+				updateValue(component, []byte(value))
 			case tcell.KeyCtrlS:
 				shared.ConfirmAction("Are you sure?", component, func(modal *tview.Modal) {
 					keyListUntyped, _ := container.GetComponent("keyList")
@@ -50,7 +51,7 @@ func init() {
 }
 
 func copyValueToClipboard(component *tview.TextView) {
-	clipboard.Write(clipboard.FmtText, []byte(component.GetText(true)))
+	clipboard.WriteAll(component.GetText(true))
 }
 
 func updateValue(component *tview.TextView, newValue []byte) {
