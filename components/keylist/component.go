@@ -6,6 +6,7 @@ import (
 	"riakg/components/shared"
 	"riakg/riakapi"
 
+	"github.com/atotto/clipboard"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
@@ -14,7 +15,7 @@ func init() {
 	component := NewKeyList()
 	container.AddComponent("keyList", component)
 
-	wrapped := shared.WrapWithShortCuts(component, []string{"Ctrl-d: Delete key"})
+	wrapped := shared.WrapWithShortCuts(component, []string{"Ctrl-y: Copy key", "Ctrl-d: Delete key", "Ctrl-x: Delete all keys"})
 	container.AddComponent("WrappedkeyList", wrapped)
 
 	container.AfterInitialize(func() {
@@ -29,13 +30,16 @@ func init() {
 
 		component.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 			tabCapturefunc(event)
-			if event.Key() == tcell.KeyCtrlD {
+
+			switch event.Key() {
+			case tcell.KeyCtrlD:
 				shared.ConfirmAction("Are you sure?", component, func(modal *tview.Modal) {
 					idx := component.GetCurrentItem()
 					key, bucket := component.GetItemText(idx)
 
 					if riakapi.DeleteKey(bucket, key) {
-						// Needed due a bug on the RemoveItem function when the item to remove is the first one on the component
+						// Needed due a bug on the RemoveItem function when the item to remove
+						// is the first one on the component
 						if idx == 0 {
 							component.SetCurrentItem(1)
 						}
@@ -43,6 +47,23 @@ func init() {
 					}
 					valueView.Clear()
 				}, nil)
+			case tcell.KeyCtrlX:
+				shared.ConfirmAction("Are you sure?", component, func(modal *tview.Modal) {
+					itemCount := component.GetItemCount()
+
+					for idx := 0; idx < itemCount; idx++ {
+						key, bucket := component.GetItemText(0)
+
+						if riakapi.DeleteKey(bucket, key) {
+							component.SetCurrentItem(1)
+							component.RemoveItem(0)
+						}
+					}
+					valueView.Clear()
+				}, nil)
+			case tcell.KeyCtrlY:
+				key, _ := component.GetItemText(component.GetCurrentItem())
+				clipboard.WriteAll(key)
 			}
 
 			// This prevents that tab bubbles to the main goes to the main handler and

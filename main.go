@@ -19,12 +19,7 @@ var Version string = "0.3.1"
 
 func init() {
 	getParams()
-	file, err := os.OpenFile("logs.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.SetOutput(file)
+	log.SetOutput(os.Stdout)
 }
 
 func main() {
@@ -67,4 +62,8 @@ func getParams() {
 	riakapi.Port = *port
 	riakapi.Username = *username
 	riakapi.Password = *password
+}
+
+func otherFunction() {
+	fmt.Println("this is another function")
 }

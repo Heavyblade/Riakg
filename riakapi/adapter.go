@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -156,9 +157,11 @@ func DeleteKey(bucket, key string) bool {
 func UpdateKeyValue(bucket, key, value string) bool {
 	escapedBucket := url.QueryEscape(bucket)
 	escapedKey := url.QueryEscape(key)
+
 	targetUrl := GetUrl() + "/buckets/" + escapedBucket + "/keys/" + escapedKey
 	headers := map[string]string{"Accept": "application/json", "Content-Type": "application/json"}
 
-	err, _ := Put(targetUrl, map[string]string{}, headers, value)
+	err, body := Put(targetUrl, map[string]string{}, headers, value)
+	log.Print(string(body))
 	return err == nil
 }
