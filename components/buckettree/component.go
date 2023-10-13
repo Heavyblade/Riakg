@@ -4,6 +4,7 @@ import (
 	"riakg/components/container"
 	"riakg/components/shared"
 	"riakg/riakapi"
+	"sort"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -57,6 +58,8 @@ func fillBuckets() {
 	rootDir := "Buckets"
 	root := tview.NewTreeNode(rootDir).SetColor(bucketsFontColor)
 	tree.SetRoot(root).SetCurrentNode(root)
+
+	sort.Strings(buckets.Bukckets)
 
 	for v := range buckets.Bukckets {
 		root.AddChild(tview.NewTreeNode(buckets.Bukckets[v]).SetColor(bucketsFontColor))

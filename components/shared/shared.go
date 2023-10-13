@@ -8,7 +8,7 @@ import (
 	"github.com/rivo/tview"
 )
 
-var BackgroundColor = tcell.NewRGBColor(26, 27, 38)
+var BackgroundColor = tcell.ColorDefault
 var BucketsFontColor = tcell.NewRGBColor(47, 196, 222)
 var BorderColor = tcell.NewRGBColor(59, 66, 97)
 var SelectedColor = tcell.NewRGBColor(251, 158, 101)
